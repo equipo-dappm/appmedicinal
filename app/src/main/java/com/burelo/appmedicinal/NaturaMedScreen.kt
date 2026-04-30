@@ -25,6 +25,9 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
+import com.burelo.appmedicinal.R
 
 // ─────────────────────────────────────────────────────────────
 //  DATA MODELS
@@ -32,8 +35,6 @@ import androidx.compose.ui.unit.sp
 
 data class Category(val emoji: String, val label: String, val bgColor: Color)
 data class FavoritePlant(val name: String, val category: String)
-data class Plant(val name: String, val description: String, val rating: Float, val isFavorite: Boolean = false)
-
 // ─────────────────────────────────────────────────────────────
 //  SAMPLE DATA
 // ─────────────────────────────────────────────────────────────
@@ -52,10 +53,18 @@ val sampleFavorites = listOf(
     FavoritePlant("Tila",  "Relajación"),
 )
 
-val samplePlants = listOf(
-    Plant("Manzanilla", "Calmante natural",  4.8f, isFavorite = true),
-    Plant("Valeriana",  "Mejora el sueño",   4.5f),
-    Plant("Jengibre",   "Antiinflamatorio",  4.9f),
+data class HomePlant(
+    val name: String,
+    val description: String,
+    val imageRes: Int,
+    val isFavorite: Boolean = false
+)
+
+val homePlants = listOf(
+    HomePlant("Maguey Morado", "Antiséptico y antibacteriano",   R.drawable.maguey_morado),
+    HomePlant("Oreganón",      "Analgésico y expectorante",      R.drawable.oreganon),
+    HomePlant("Albahaca",      "Digestivo y relajante nervioso", R.drawable.albahaca),
+    HomePlant("Guácimo",       "Antidiarréico y capilar",        R.drawable.guacimo),
 )
 
 // ─────────────────────────────────────────────────────────────
@@ -100,7 +109,7 @@ fun NaturaMedScreen(
             )
             CategoriesSection()
             RecentFavoritesSection()
-            PlantsOfMonthSection(onPlantClick = onPlantClick)
+            MedicinalPlantsSection(onPlantClick = onPlantClick)
             Spacer(modifier = Modifier.height(16.dp))
         }
     }
@@ -270,30 +279,32 @@ fun FavoriteCard(plant: FavoritePlant, modifier: Modifier = Modifier) {
 }
 
 // ─────────────────────────────────────────────────────────────
-//  PLANTS OF THE MONTH
+//  PLANTAS MEDICINALES
 // ─────────────────────────────────────────────────────────────
 
 @Composable
-fun PlantsOfMonthSection(onPlantClick: (String) -> Unit = {}) {
-    Column {
+fun MedicinalPlantsSection(onPlantClick: (String) -> Unit = {}) {
+    Column(modifier = Modifier.padding(bottom = 8.dp)) {
+        Text(
+            text = "Plantas Medicinales",
+            style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
+            modifier = Modifier.padding(horizontal = 24.dp, vertical = 8.dp)
+        )
         Row(
-            modifier = Modifier.fillMaxWidth().padding(horizontal = 24.dp, vertical = 8.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Text("Plantas del Mes", style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold), modifier = Modifier.weight(1f))
-            TextButton(onClick = {}) { Text("Ver todo", color = PrimaryGreen) }
-        }
-        Row(
-            modifier = Modifier.horizontalScroll(rememberScrollState()).padding(horizontal = 24.dp, vertical = 4.dp),
+            modifier = Modifier
+                .horizontalScroll(rememberScrollState())
+                .padding(horizontal = 24.dp, vertical = 4.dp),
             horizontalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            samplePlants.forEach { PlantCard(plant = it, onClick = { onPlantClick(it.name) }) }
+            homePlants.forEach { plant ->
+                HomePlantCard(plant = plant, onClick = { onPlantClick(plant.name) })
+            }
         }
     }
 }
 
 @Composable
-fun PlantCard(plant: Plant, onClick: () -> Unit = {}) {
+fun HomePlantCard(plant: HomePlant, onClick: () -> Unit = {}) {
     var isFav by remember { mutableStateOf(plant.isFavorite) }
 
     Card(
@@ -303,8 +314,13 @@ fun PlantCard(plant: Plant, onClick: () -> Unit = {}) {
         elevation = CardDefaults.cardElevation(3.dp)
     ) {
         Column {
-            Box(modifier = Modifier.fillMaxWidth().height(128.dp).background(PrimaryContainer)) {
-                Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) { Text("🌿", fontSize = 48.sp) }
+            Box(modifier = Modifier.fillMaxWidth().height(128.dp)) {
+                androidx.compose.foundation.Image(
+                    painter = painterResource(id = plant.imageRes),
+                    contentDescription = plant.name,
+                    contentScale = ContentScale.Crop,
+                    modifier = Modifier.fillMaxSize().clip(RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp))
+                )
                 Card(
                     modifier = Modifier.align(Alignment.TopEnd).padding(8.dp).size(34.dp).clickable { isFav = !isFav },
                     shape = CircleShape,
@@ -324,10 +340,6 @@ fun PlantCard(plant: Plant, onClick: () -> Unit = {}) {
             Column(modifier = Modifier.padding(16.dp)) {
                 Text(plant.name, style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.Bold))
                 Text(plant.description, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.padding(top = 4.dp))
-                Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(top = 10.dp)) {
-                    Icon(Icons.Default.Star, contentDescription = null, tint = Color(0xFFF9A825), modifier = Modifier.size(14.dp))
-                    Text(plant.rating.toString(), style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold), modifier = Modifier.padding(start = 4.dp))
-                }
             }
         }
     }
