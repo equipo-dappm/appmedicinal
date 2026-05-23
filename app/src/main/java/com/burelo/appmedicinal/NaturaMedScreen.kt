@@ -13,7 +13,6 @@ import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Search
-import androidx.compose.material.icons.filled.Star
 import androidx.compose.material.icons.outlined.FavoriteBorder
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -33,31 +32,10 @@ import com.burelo.appmedicinal.R
 //  DATA MODELS
 // ─────────────────────────────────────────────────────────────
 
-data class Category(val emoji: String, val label: String, val bgColor: Color)
-data class FavoritePlant(val name: String, val category: String)
-// ─────────────────────────────────────────────────────────────
-//  SAMPLE DATA
-// ─────────────────────────────────────────────────────────────
-
-val sampleCategories = listOf(
-    Category("🤕", "Dolor",     Color(0xFFFFF3E0)),
-    Category("😴", "Sueño",     Color(0xFFE3F2FD)),
-    Category("🫁", "Digestión", Color(0xFFFCE4EC)),
-    Category("💪", "Energía",   Color(0xFFFFFDE7)),
-    Category("🧠", "Estrés",    Color(0xFFF3E5F5)),
-    Category("🌡️", "Resfriado", Color(0xFFFFEBEE)),
-)
-
-val sampleFavorites = listOf(
-    FavoritePlant("Menta", "Digestión"),
-    FavoritePlant("Tila",  "Relajación"),
-)
-
 data class HomePlant(
     val name: String,
     val description: String,
     val imageRes: Int,
-    val isFavorite: Boolean = false
 )
 
 val homePlants = listOf(
@@ -79,7 +57,6 @@ val SurfaceColor     = Color(0xFFF6F9F5)
 //  ROOT SCREEN
 // ─────────────────────────────────────────────────────────────
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun NaturaMedScreen(
     onSearch: (String) -> Unit = {},
@@ -87,30 +64,212 @@ fun NaturaMedScreen(
 ) {
     var selectedTab by remember { mutableIntStateOf(0) }
     var searchQuery by remember { mutableStateOf("") }
+    val favoriteNames = remember { mutableStateListOf<String>() }
 
     Scaffold(
         containerColor = SurfaceColor,
         bottomBar = {
-            NaturaMedBottomNav(selectedTab = selectedTab, onTabSelected = { selectedTab = it })
+            NaturaMedBottomNav(
+                selectedTab = selectedTab,
+                onTabSelected = { index ->
+                    when (index) {
+                        0 -> selectedTab = 0
+                        1 -> {
+                            selectedTab = 0
+                            if (searchQuery.isNotBlank()) onSearch(searchQuery)
+                        }
+                        2 -> selectedTab = 2
+                        3 -> selectedTab = 3
+                    }
+                }
+            )
         }
     ) { innerPadding ->
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(innerPadding)
-                .verticalScroll(rememberScrollState())
-        ) {
-            AppHeader()
-            GreetingText()
-            SearchBarSection(
-                query = searchQuery,
+        when (selectedTab) {
+            0 -> HomeTab(
+                innerPadding = innerPadding,
+                searchQuery = searchQuery,
                 onQueryChange = { searchQuery = it },
-                onSearch = onSearch
+                onSearch = onSearch,
+                favoriteNames = favoriteNames,
+                onPlantClick = onPlantClick,
+                onToggleFavorite = { name ->
+                    if (name in favoriteNames) favoriteNames.remove(name)
+                    else favoriteNames.add(name)
+                }
             )
-            CategoriesSection()
-            RecentFavoritesSection()
-            MedicinalPlantsSection(onPlantClick = onPlantClick)
+            2 -> FavoritesTab(
+                innerPadding = innerPadding,
+                favoriteNames = favoriteNames,
+                onPlantClick = onPlantClick,
+                onToggleFavorite = { name ->
+                    if (name in favoriteNames) favoriteNames.remove(name)
+                    else favoriteNames.add(name)
+                }
+            )
+            3 -> ProfileTab(innerPadding = innerPadding)
+        }
+    }
+}
+
+// ─────────────────────────────────────────────────────────────
+//  HOME TAB
+// ─────────────────────────────────────────────────────────────
+
+@Composable
+private fun HomeTab(
+    innerPadding: PaddingValues,
+    searchQuery: String,
+    onQueryChange: (String) -> Unit,
+    onSearch: (String) -> Unit,
+    favoriteNames: List<String>,
+    onPlantClick: (String) -> Unit,
+    onToggleFavorite: (String) -> Unit,
+) {
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(innerPadding)
+            .verticalScroll(rememberScrollState())
+    ) {
+        AppHeader()
+        GreetingText()
+        SearchField(
+            query = searchQuery,
+            onQueryChange = onQueryChange,
+            onSearch = onSearch
+        )
+        if (favoriteNames.isNotEmpty()) {
+            RecentFavoritesSection(
+                favoriteNames = favoriteNames,
+                onPlantClick = onPlantClick
+            )
+        }
+        MedicinalPlantsSection(
+            onPlantClick = onPlantClick,
+            favoriteNames = favoriteNames,
+            onToggleFavorite = onToggleFavorite
+        )
+        Spacer(modifier = Modifier.height(16.dp))
+    }
+}
+
+// ─────────────────────────────────────────────────────────────
+//  FAVORITES TAB
+// ─────────────────────────────────────────────────────────────
+
+@Composable
+private fun FavoritesTab(
+    innerPadding: PaddingValues,
+    favoriteNames: List<String>,
+    onPlantClick: (String) -> Unit,
+    onToggleFavorite: (String) -> Unit,
+) {
+    val favoritePlants = homePlants.filter { it.name in favoriteNames }
+
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(innerPadding)
+            .verticalScroll(rememberScrollState())
+    ) {
+        Text(
+            text = "Mis Favoritos",
+            style = MaterialTheme.typography.headlineSmall.copy(fontWeight = FontWeight.Bold),
+            modifier = Modifier.padding(horizontal = 24.dp, vertical = 16.dp)
+        )
+
+        if (favoritePlants.isEmpty()) {
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(48.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    Text(text = "💚", fontSize = 48.sp)
+                    Spacer(modifier = Modifier.height(12.dp))
+                    Text(
+                        text = "Aún no tienes favoritos",
+                        style = MaterialTheme.typography.bodyLarge,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                    Text(
+                        text = "Toca el corazón en las plantas para guardarlas aquí",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.padding(top = 4.dp)
+                    )
+                }
+            }
+        } else {
+            Column(
+                modifier = Modifier.padding(horizontal = 16.dp),
+                verticalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                favoritePlants.forEach { plant ->
+                    FavoritePlantCard(
+                        plant = plant,
+                        isFavorite = true,
+                        onClick = { onPlantClick(plant.name) },
+                        onToggleFavorite = { onToggleFavorite(plant.name) }
+                    )
+                }
+            }
             Spacer(modifier = Modifier.height(16.dp))
+        }
+    }
+}
+
+// ─────────────────────────────────────────────────────────────
+//  PROFILE TAB
+// ─────────────────────────────────────────────────────────────
+
+@Composable
+private fun ProfileTab(innerPadding: PaddingValues) {
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(innerPadding)
+            .verticalScroll(rememberScrollState()),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Spacer(modifier = Modifier.height(48.dp))
+        Box(
+            modifier = Modifier.size(80.dp).clip(CircleShape).background(PrimaryContainer),
+            contentAlignment = Alignment.Center
+        ) { Text(text = "🌿", fontSize = 36.sp) }
+
+        Spacer(modifier = Modifier.height(16.dp))
+        Text(
+            text = "NaturaMed",
+            style = MaterialTheme.typography.headlineSmall.copy(fontWeight = FontWeight.Bold, color = PrimaryGreen)
+        )
+        Text(
+            text = "Tu guía de plantas medicinales",
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier.padding(top = 4.dp)
+        )
+        Spacer(modifier = Modifier.height(32.dp))
+
+        Card(
+            modifier = Modifier.fillMaxWidth().padding(horizontal = 24.dp),
+            shape = RoundedCornerShape(16.dp),
+            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
+        ) {
+            Column(modifier = Modifier.padding(20.dp)) {
+                Text(
+                    text = "Acerca de",
+                    style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold)
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+                Text(
+                    text = "NaturaMed es una aplicación educativa sobre herbolaria medicinal tradicional de México, con información sobre propiedades, usos y preparación de plantas medicinales.",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
         }
     }
 }
@@ -162,81 +321,45 @@ fun GreetingText() {
 }
 
 // ─────────────────────────────────────────────────────────────
-//  SEARCH BAR
+//  SEARCH FIELD
 // ─────────────────────────────────────────────────────────────
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun SearchBarSection(
+fun SearchField(
     query: String,
     onQueryChange: (String) -> Unit,
     onSearch: (String) -> Unit = {}
 ) {
-    var active by remember { mutableStateOf(false) }
-
-    SearchBar(
-        query = query,
-        onQueryChange = onQueryChange,
-        onSearch = { q -> active = false; onSearch(q) },
-        active = active,
-        onActiveChange = { active = it },
+    OutlinedTextField(
+        value = query,
+        onValueChange = onQueryChange,
         placeholder = {
             Text("¿Qué síntoma tienes? Ej: dolor de cabeza",
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant)
         },
-        leadingIcon = { Icon(Icons.Default.Search, contentDescription = "Buscar") },
-        trailingIcon = { IconButton(onClick = {}) { Text("📷", fontSize = 20.sp) } },
-        modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp),
-        tonalElevation = 2.dp
-    ) { }
-}
-
-// ─────────────────────────────────────────────────────────────
-//  CATEGORIES
-// ─────────────────────────────────────────────────────────────
-
-@Composable
-fun CategoriesSection() {
-    Column(modifier = Modifier.padding(top = 16.dp)) {
-        Text(
-            text = "CATEGORÍAS POPULARES",
-            style = MaterialTheme.typography.labelSmall.copy(letterSpacing = 1.5.sp, fontWeight = FontWeight.Bold),
-            modifier = Modifier.padding(horizontal = 24.dp, vertical = 8.dp)
-        )
-        Row(
-            modifier = Modifier.horizontalScroll(rememberScrollState()).padding(horizontal = 24.dp, vertical = 4.dp),
-            horizontalArrangement = Arrangement.spacedBy(12.dp)
-        ) {
-            sampleCategories.forEach { CategoryItem(category = it) }
-        }
-    }
-}
-
-@Composable
-fun CategoryItem(category: Category) {
-    Column(
-        horizontalAlignment = Alignment.CenterHorizontally,
-        modifier = Modifier.width(72.dp).clickable { }
-    ) {
-        Card(
-            modifier = Modifier.size(56.dp),
-            shape = RoundedCornerShape(16.dp),
-            colors = CardDefaults.cardColors(containerColor = category.bgColor),
-            elevation = CardDefaults.cardElevation(2.dp)
-        ) {
-            Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                Text(text = category.emoji, fontSize = 26.sp)
+        leadingIcon = {
+            Icon(Icons.Default.Search, contentDescription = "Buscar")
+        },
+        trailingIcon = {
+            if (query.isNotBlank()) {
+                IconButton(onClick = { onSearch(query) }) {
+                    Icon(Icons.Default.Search, contentDescription = "Buscar")
+                }
             }
-        }
-        Text(
-            text = category.label,
-            style = MaterialTheme.typography.labelSmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-            maxLines = 1,
-            modifier = Modifier.padding(top = 6.dp)
-        )
-    }
+        },
+        singleLine = true,
+        shape = RoundedCornerShape(28.dp),
+        colors = OutlinedTextFieldDefaults.colors(
+            focusedBorderColor = PrimaryGreen,
+            unfocusedBorderColor = Color.Transparent,
+            focusedContainerColor = MaterialTheme.colorScheme.surface,
+            unfocusedContainerColor = MaterialTheme.colorScheme.surface
+        ),
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp, vertical = 8.dp),
+    )
 }
 
 // ─────────────────────────────────────────────────────────────
@@ -244,23 +367,54 @@ fun CategoryItem(category: Category) {
 // ─────────────────────────────────────────────────────────────
 
 @Composable
-fun RecentFavoritesSection() {
-    Column(modifier = Modifier.padding(horizontal = 24.dp, vertical = 24.dp)) {
-        Text(
-            text = "Favoritos Recientes",
-            style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
-            modifier = Modifier.padding(bottom = 12.dp)
-        )
-        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-            sampleFavorites.forEach { FavoriteCard(plant = it, modifier = Modifier.weight(1f)) }
+fun RecentFavoritesSection(
+    favoriteNames: List<String>,
+    onPlantClick: (String) -> Unit = {}
+) {
+    val favoritePlants = homePlants.filter { it.name in favoriteNames }
+
+    Column(modifier = Modifier.padding(horizontal = 24.dp, vertical = 16.dp)) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(
+                text = "Favoritos Recientes",
+                style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
+                modifier = Modifier.weight(1f)
+            )
+            Text(
+                text = "Ver todos →",
+                style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.SemiBold, color = PrimaryGreen),
+                modifier = Modifier.clickable { }
+            )
+        }
+        Spacer(modifier = Modifier.height(12.dp))
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            favoritePlants.take(2).forEach { plant ->
+                FavoriteCard(
+                    plantName = plant.name,
+                    description = plant.description,
+                    modifier = Modifier.weight(1f),
+                    onClick = { onPlantClick(plant.name) }
+                )
+            }
         }
     }
 }
 
 @Composable
-fun FavoriteCard(plant: FavoritePlant, modifier: Modifier = Modifier) {
+fun FavoriteCard(
+    plantName: String,
+    description: String,
+    modifier: Modifier = Modifier,
+    onClick: () -> Unit = {}
+) {
     Card(
-        modifier = modifier.clickable { },
+        modifier = modifier.clickable { onClick() },
         shape = RoundedCornerShape(16.dp),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
         elevation = CardDefaults.cardElevation(1.dp)
@@ -271,8 +425,8 @@ fun FavoriteCard(plant: FavoritePlant, modifier: Modifier = Modifier) {
                 contentAlignment = Alignment.Center
             ) { Text("🌿", fontSize = 20.sp) }
             Column(modifier = Modifier.padding(start = 10.dp)) {
-                Text(plant.name, style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.SemiBold))
-                Text(plant.category, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.padding(top = 2.dp))
+                Text(plantName, style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.SemiBold))
+                Text(description, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant, maxLines = 1, modifier = Modifier.padding(top = 2.dp))
             }
         }
     }
@@ -283,7 +437,11 @@ fun FavoriteCard(plant: FavoritePlant, modifier: Modifier = Modifier) {
 // ─────────────────────────────────────────────────────────────
 
 @Composable
-fun MedicinalPlantsSection(onPlantClick: (String) -> Unit = {}) {
+fun MedicinalPlantsSection(
+    onPlantClick: (String) -> Unit = {},
+    favoriteNames: List<String> = emptyList(),
+    onToggleFavorite: (String) -> Unit = {}
+) {
     Column(modifier = Modifier.padding(bottom = 8.dp)) {
         Text(
             text = "Plantas Medicinales",
@@ -297,16 +455,86 @@ fun MedicinalPlantsSection(onPlantClick: (String) -> Unit = {}) {
             horizontalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             homePlants.forEach { plant ->
-                HomePlantCard(plant = plant, onClick = { onPlantClick(plant.name) })
+                HomePlantCard(
+                    plant = plant,
+                    isFavorite = plant.name in favoriteNames,
+                    onClick = { onPlantClick(plant.name) },
+                    onToggleFavorite = { onToggleFavorite(plant.name) }
+                )
             }
         }
     }
 }
 
-@Composable
-fun HomePlantCard(plant: HomePlant, onClick: () -> Unit = {}) {
-    var isFav by remember { mutableStateOf(plant.isFavorite) }
+// ─────────────────────────────────────────────────────────────
+//  FAVORITE PLANT CARD (for Favorites tab)
+// ─────────────────────────────────────────────────────────────
 
+@Composable
+fun FavoritePlantCard(
+    plant: HomePlant,
+    isFavorite: Boolean,
+    onClick: () -> Unit = {},
+    onToggleFavorite: () -> Unit = {}
+) {
+    Card(
+        onClick = onClick,
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(20.dp),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+        elevation = CardDefaults.cardElevation(3.dp)
+    ) {
+        Row(
+            modifier = Modifier.padding(12.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Box(
+                modifier = Modifier.size(64.dp).clip(RoundedCornerShape(12.dp)),
+                contentAlignment = Alignment.Center
+            ) {
+                androidx.compose.foundation.Image(
+                    painter = painterResource(id = plant.imageRes),
+                    contentDescription = plant.name,
+                    contentScale = ContentScale.Crop,
+                    modifier = Modifier.fillMaxSize().clip(RoundedCornerShape(12.dp))
+                )
+            }
+            Column(
+                modifier = Modifier.weight(1f).padding(start = 12.dp)
+            ) {
+                Text(
+                    text = plant.name,
+                    style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold)
+                )
+                Text(
+                    text = plant.description,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.padding(top = 2.dp)
+                )
+            }
+            IconButton(onClick = onToggleFavorite) {
+                Icon(
+                    imageVector = if (isFavorite) Icons.Filled.Favorite else Icons.Outlined.FavoriteBorder,
+                    contentDescription = "Favorito",
+                    tint = if (isFavorite) Color(0xFFE53935) else Color.Gray
+                )
+            }
+        }
+    }
+}
+
+// ─────────────────────────────────────────────────────────────
+//  HOME PLANT CARD
+// ─────────────────────────────────────────────────────────────
+
+@Composable
+fun HomePlantCard(
+    plant: HomePlant,
+    isFavorite: Boolean = false,
+    onClick: () -> Unit = {},
+    onToggleFavorite: () -> Unit = {}
+) {
     Card(
         modifier = Modifier.width(180.dp).clickable { onClick() },
         shape = RoundedCornerShape(24.dp),
@@ -322,16 +550,16 @@ fun HomePlantCard(plant: HomePlant, onClick: () -> Unit = {}) {
                     modifier = Modifier.fillMaxSize().clip(RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp))
                 )
                 Card(
-                    modifier = Modifier.align(Alignment.TopEnd).padding(8.dp).size(34.dp).clickable { isFav = !isFav },
+                    modifier = Modifier.align(Alignment.TopEnd).padding(8.dp).size(34.dp).clickable { onToggleFavorite() },
                     shape = CircleShape,
                     colors = CardDefaults.cardColors(containerColor = Color.White.copy(alpha = 0.85f)),
                     elevation = CardDefaults.cardElevation(0.dp)
                 ) {
                     Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                         Icon(
-                            imageVector = if (isFav) Icons.Filled.Favorite else Icons.Outlined.FavoriteBorder,
+                            imageVector = if (isFavorite) Icons.Filled.Favorite else Icons.Outlined.FavoriteBorder,
                             contentDescription = "Favorito",
-                            tint = if (isFav) Color(0xFFE53935) else Color.Gray,
+                            tint = if (isFavorite) Color(0xFFE53935) else Color.Gray,
                             modifier = Modifier.size(18.dp)
                         )
                     }
@@ -374,7 +602,7 @@ fun NaturaMedBottomNav(selectedTab: Int, onTabSelected: (Int) -> Unit) {
 }
 
 // ─────────────────────────────────────────────────────────────
-//  PREVIEW
+//  PREVIEWS
 // ─────────────────────────────────────────────────────────────
 
 @Preview(showBackground = true, showSystemUi = true)

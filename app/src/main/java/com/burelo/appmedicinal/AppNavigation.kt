@@ -21,9 +21,18 @@ object Routes {
     const val PLANTS_ACTIVITY = "plants_activity/{plantName}"
     const val VIDEO_ACTIVITY  = "video_activity/{videoUrl}"
 
-    fun searchResults(query: String) = "search_results/$query"
-    fun plantDetail(plantName: String) = "plant_detail/$plantName"
-    fun plantsActivity(plantName: String) = "plants_activity/$plantName"
+    fun searchResults(query: String): String {
+        val encoded = URLEncoder.encode(query, StandardCharsets.UTF_8.toString())
+        return "search_results/$encoded"
+    }
+    fun plantDetail(plantName: String): String {
+        val encoded = URLEncoder.encode(plantName, StandardCharsets.UTF_8.toString())
+        return "plant_detail/$encoded"
+    }
+    fun plantsActivity(plantName: String): String {
+        val encoded = URLEncoder.encode(plantName, StandardCharsets.UTF_8.toString())
+        return "plants_activity/$encoded"
+    }
     fun videoActivity(videoUrl: String): String {
         val encoded = URLEncoder.encode(videoUrl, StandardCharsets.UTF_8.toString())
         return "video_activity/$encoded"
@@ -60,12 +69,13 @@ fun AppNavigation() {
             route = Routes.SEARCH_RESULTS,
             arguments = listOf(navArgument("query") { type = NavType.StringType })
         ) { backStackEntry ->
-            val query = backStackEntry.arguments?.getString("query") ?: ""
+            val raw = backStackEntry.arguments?.getString("query") ?: ""
+            val query = URLDecoder.decode(raw, StandardCharsets.UTF_8.toString())
             SearchResultsScreen(
                 query = query,
                 onBack = { navController.popBackStack() },
                 onResultClick = { plantName ->
-                    navController.navigate(Routes.plantDetail(plantName))
+                    navController.navigate(Routes.plantsActivity(plantName))
                 }
             )
         }
@@ -86,7 +96,8 @@ fun AppNavigation() {
             route = Routes.PLANTS_ACTIVITY,
             arguments = listOf(navArgument("plantName") { type = NavType.StringType })
         ) { backStackEntry ->
-            val plantName = backStackEntry.arguments?.getString("plantName") ?: ""
+            val raw = backStackEntry.arguments?.getString("plantName") ?: ""
+            val plantName = URLDecoder.decode(raw, StandardCharsets.UTF_8.toString())
             PlantsActivityScreen(
                 plantName = plantName,
                 onBack = { navController.popBackStack() },
