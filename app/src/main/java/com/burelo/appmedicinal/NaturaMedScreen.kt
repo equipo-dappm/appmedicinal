@@ -2,7 +2,6 @@ package com.burelo.appmedicinal.ui
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
@@ -72,15 +71,7 @@ fun NaturaMedScreen(
             NaturaMedBottomNav(
                 selectedTab = selectedTab,
                 onTabSelected = { index ->
-                    when (index) {
-                        0 -> selectedTab = 0
-                        1 -> {
-                            selectedTab = 0
-                            if (searchQuery.isNotBlank()) onSearch(searchQuery)
-                        }
-                        2 -> selectedTab = 2
-                        3 -> selectedTab = 3
-                    }
+                    selectedTab = index
                 }
             )
         }
@@ -98,7 +89,7 @@ fun NaturaMedScreen(
                     else favoriteNames.add(name)
                 }
             )
-            2 -> FavoritesTab(
+            1 -> FavoritesTab(
                 innerPadding = innerPadding,
                 favoriteNames = favoriteNames,
                 onPlantClick = onPlantClick,
@@ -107,7 +98,7 @@ fun NaturaMedScreen(
                     else favoriteNames.add(name)
                 }
             )
-            3 -> ProfileTab(innerPadding = innerPadding)
+            2 -> ProfileTab(innerPadding = innerPadding)
         }
     }
 }
@@ -448,19 +439,29 @@ fun MedicinalPlantsSection(
             style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
             modifier = Modifier.padding(horizontal = 24.dp, vertical = 8.dp)
         )
-        Row(
+        Column(
             modifier = Modifier
-                .horizontalScroll(rememberScrollState())
                 .padding(horizontal = 24.dp, vertical = 4.dp),
-            horizontalArrangement = Arrangement.spacedBy(16.dp)
+            verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            homePlants.forEach { plant ->
-                HomePlantCard(
-                    plant = plant,
-                    isFavorite = plant.name in favoriteNames,
-                    onClick = { onPlantClick(plant.name) },
-                    onToggleFavorite = { onToggleFavorite(plant.name) }
-                )
+            homePlants.chunked(2).forEach { pair ->
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(16.dp)
+                ) {
+                    pair.forEach { plant ->
+                        HomePlantCard(
+                            plant = plant,
+                            isFavorite = plant.name in favoriteNames,
+                            onClick = { onPlantClick(plant.name) },
+                            onToggleFavorite = { onToggleFavorite(plant.name) },
+                            modifier = Modifier.weight(1f)
+                        )
+                    }
+                    if (pair.size == 1) {
+                        Spacer(modifier = Modifier.weight(1f))
+                    }
+                }
             }
         }
     }
@@ -533,10 +534,11 @@ fun HomePlantCard(
     plant: HomePlant,
     isFavorite: Boolean = false,
     onClick: () -> Unit = {},
-    onToggleFavorite: () -> Unit = {}
+    onToggleFavorite: () -> Unit = {},
+    modifier: Modifier = Modifier
 ) {
     Card(
-        modifier = Modifier.width(180.dp).clickable { onClick() },
+        modifier = modifier.clickable { onClick() },
         shape = RoundedCornerShape(24.dp),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
         elevation = CardDefaults.cardElevation(3.dp)
@@ -581,10 +583,9 @@ fun HomePlantCard(
 fun NaturaMedBottomNav(selectedTab: Int, onTabSelected: (Int) -> Unit) {
     NavigationBar(containerColor = MaterialTheme.colorScheme.surface, tonalElevation = 8.dp) {
         listOf(
-            Triple(Icons.Default.Home,   Icons.Default.Home,                "Inicio"),
-            Triple(Icons.Default.Search, Icons.Default.Search,              "Buscar"),
-            Triple(Icons.Outlined.FavoriteBorder, Icons.Filled.Favorite,   "Favoritos"),
-            Triple(Icons.Default.Person, Icons.Default.Person,              "Perfil"),
+            Triple(Icons.Default.Home,   Icons.Default.Home,              "Inicio"),
+            Triple(Icons.Outlined.FavoriteBorder, Icons.Filled.Favorite, "Favoritos"),
+            Triple(Icons.Default.Person, Icons.Default.Person,            "Perfil"),
         ).forEachIndexed { index, (outlinedIcon, filledIcon, label) ->
             NavigationBarItem(
                 selected = selectedTab == index,
