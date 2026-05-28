@@ -20,7 +20,11 @@ class PlantasRepository {
             .from("plantas")
             .select {
                 filter {
-                    ilike("nombre_comun", "%$query%")
+                    or {
+                        ilike("nombre_comun", "%$query%")
+                        ilike("descripcion_uso", "%$query%")
+                        ilike("nombre_cientifico", "%$query%")
+                    }
                 }
             }
             .decodeList<Planta>()

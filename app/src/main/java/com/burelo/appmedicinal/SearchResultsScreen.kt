@@ -128,6 +128,10 @@ fun PlantResultCard(
             Box(
                 modifier = Modifier.size(64.dp).clip(RoundedCornerShape(12.dp))
             ) {
+                Box(
+                    modifier = Modifier.fillMaxSize().background(PrimaryContainer).clip(RoundedCornerShape(12.dp)),
+                    contentAlignment = Alignment.Center
+                ) { Text("🌿", fontSize = 24.sp) }
                 if (!plant.imagen_url.isNullOrBlank()) {
                     AsyncImage(
                         model = plant.imagen_url,
@@ -135,11 +139,6 @@ fun PlantResultCard(
                         contentScale = ContentScale.Crop,
                         modifier = Modifier.fillMaxSize().clip(RoundedCornerShape(12.dp))
                     )
-                } else {
-                    Box(
-                        modifier = Modifier.fillMaxSize().background(PrimaryContainer).clip(RoundedCornerShape(12.dp)),
-                        contentAlignment = Alignment.Center
-                    ) { Text("🌿", fontSize = 24.sp) }
                 }
             }
 

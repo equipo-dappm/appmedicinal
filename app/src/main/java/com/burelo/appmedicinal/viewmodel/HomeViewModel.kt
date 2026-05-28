@@ -25,7 +25,9 @@ class HomeViewModel : ViewModel() {
         "Maguey morado",
         "Guácimo",
         "Sábila",
-        "Epazote"
+        "Epazote",
+        "Buganvilia",
+        "Guanábana"
     )
 
     init {

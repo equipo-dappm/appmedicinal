@@ -470,6 +470,10 @@ fun HomePlantCard(
     ) {
         Column {
             Box(modifier = Modifier.fillMaxWidth().height(128.dp)) {
+                Box(
+                    modifier = Modifier.fillMaxSize().background(PrimaryContainer).clip(RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp)),
+                    contentAlignment = Alignment.Center
+                ) { Text("🌿", fontSize = 40.sp) }
                 if (!plant.imagen_url.isNullOrBlank()) {
                     AsyncImage(
                         model = plant.imagen_url,
@@ -477,11 +481,6 @@ fun HomePlantCard(
                         contentScale = ContentScale.Crop,
                         modifier = Modifier.fillMaxSize().clip(RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp))
                     )
-                } else {
-                    Box(
-                        modifier = Modifier.fillMaxSize().background(PrimaryContainer).clip(RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp)),
-                        contentAlignment = Alignment.Center
-                    ) { Text("🌿", fontSize = 40.sp) }
                 }
                 Card(
                     modifier = Modifier.align(Alignment.TopEnd).padding(8.dp).size(34.dp).clickable { onToggleFavorite() },
