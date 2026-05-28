@@ -10,24 +10,15 @@ import java.net.URLDecoder
 import java.net.URLEncoder
 import java.nio.charset.StandardCharsets
 
-// ─────────────────────────────────────────────────────────────
-//  RUTAS DE NAVEGACIÓN
-// ─────────────────────────────────────────────────────────────
-
 object Routes {
     const val HOME            = "home"
     const val SEARCH_RESULTS  = "search_results/{query}"
-    const val PLANT_DETAIL    = "plant_detail/{plantName}"
     const val PLANTS_ACTIVITY = "plants_activity/{plantName}"
     const val VIDEO_ACTIVITY  = "video_activity/{videoUrl}"
 
     fun searchResults(query: String): String {
         val encoded = URLEncoder.encode(query, StandardCharsets.UTF_8.toString())
         return "search_results/$encoded"
-    }
-    fun plantDetail(plantName: String): String {
-        val encoded = URLEncoder.encode(plantName, StandardCharsets.UTF_8.toString())
-        return "plant_detail/$encoded"
     }
     fun plantsActivity(plantName: String): String {
         val encoded = URLEncoder.encode(plantName, StandardCharsets.UTF_8.toString())
@@ -39,10 +30,6 @@ object Routes {
     }
 }
 
-// ─────────────────────────────────────────────────────────────
-//  NAV HOST PRINCIPAL
-// ─────────────────────────────────────────────────────────────
-
 @Composable
 fun AppNavigation() {
     val navController = rememberNavController()
@@ -51,8 +38,6 @@ fun AppNavigation() {
         navController = navController,
         startDestination = Routes.HOME
     ) {
-
-        // ── Pantalla 1: Inicio ──────────────────────────────
         composable(Routes.HOME) {
             NaturaMedScreen(
                 onSearch = { query ->
@@ -64,7 +49,6 @@ fun AppNavigation() {
             )
         }
 
-        // ── Pantalla 2: Resultados de búsqueda ─────────────
         composable(
             route = Routes.SEARCH_RESULTS,
             arguments = listOf(navArgument("query") { type = NavType.StringType })
@@ -80,18 +64,6 @@ fun AppNavigation() {
             )
         }
 
-        // ── Pantalla 3: Detalle de planta ───────────────────
-        composable(
-            route = Routes.PLANT_DETAIL,
-            arguments = listOf(navArgument("plantName") { type = NavType.StringType })
-        ) {
-            PlantDetailScreen(
-                plant = manzanillaDetail,
-                onBack = { navController.popBackStack() }
-            )
-        }
-
-        // ── Actividad 1: Detalle de planta medicinal ─────────
         composable(
             route = Routes.PLANTS_ACTIVITY,
             arguments = listOf(navArgument("plantName") { type = NavType.StringType })
@@ -100,14 +72,10 @@ fun AppNavigation() {
             val plantName = URLDecoder.decode(raw, StandardCharsets.UTF_8.toString())
             PlantsActivityScreen(
                 plantName = plantName,
-                onBack = { navController.popBackStack() },
-                onVideoClick = { videoUrl ->
-                    navController.navigate(Routes.videoActivity(videoUrl))
-                }
+                onBack = { navController.popBackStack() }
             )
         }
 
-        // ── Actividad 2: Reproductor de video YouTube ───────
         composable(
             route = Routes.VIDEO_ACTIVITY,
             arguments = listOf(navArgument("videoUrl") { type = NavType.StringType })
