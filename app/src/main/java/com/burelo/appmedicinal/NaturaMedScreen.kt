@@ -10,7 +10,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.Home
-import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.outlined.FavoriteBorder
 import androidx.compose.material3.*
@@ -34,15 +34,13 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
-val PrimaryGreen     = Color(0xFF2D6C48)
-val PrimaryContainer = Color(0xFFBBF7CE)
-val SurfaceColor     = Color(0xFFF6F9F5)
-
 @Composable
 fun NaturaMedScreen(
     viewModel: HomeViewModel = androidx.lifecycle.viewmodel.compose.viewModel(),
     onSearch: (String) -> Unit = {},
-    onPlantClick: (String) -> Unit = {}
+    onPlantClick: (String) -> Unit = {},
+    isDarkMode: Boolean = false,
+    onToggleDarkMode: () -> Unit = {}
 ) {
     var selectedTab by remember { mutableIntStateOf(0) }
     var searchQuery by remember { mutableStateOf("") }
@@ -65,7 +63,7 @@ fun NaturaMedScreen(
     }
 
     Scaffold(
-        containerColor = SurfaceColor,
+        containerColor = MaterialTheme.colorScheme.background,
         bottomBar = {
             NaturaMedBottomNav(
                 selectedTab = selectedTab,
@@ -92,7 +90,11 @@ fun NaturaMedScreen(
                 onPlantClick = onPlantClick,
                 onToggleFavorite = { onToggle(it) }
             )
-            2 -> ProfileTab(innerPadding = innerPadding)
+            2 -> SettingsTab(
+                innerPadding = innerPadding,
+                isDarkMode = isDarkMode,
+                onToggleDarkMode = onToggleDarkMode
+            )
         }
     }
 }
@@ -130,7 +132,7 @@ private fun HomeTab(
                 modifier = Modifier.fillMaxWidth().padding(32.dp),
                 contentAlignment = Alignment.Center
             ) {
-                CircularProgressIndicator(color = PrimaryGreen)
+                CircularProgressIndicator(color = MaterialTheme.colorScheme.primary)
             }
         } else if (error != null) {
             Box(
@@ -181,7 +183,7 @@ private fun FavoritesTab(
     ) {
         Text(
             text = "Mis Favoritos",
-            style = MaterialTheme.typography.headlineSmall.copy(fontWeight = FontWeight.Bold),
+            style = MaterialTheme.typography.headlineMedium.copy(fontWeight = FontWeight.SemiBold),
             modifier = Modifier.padding(horizontal = 24.dp, vertical = 16.dp)
         )
 
@@ -190,7 +192,7 @@ private fun FavoritesTab(
                 modifier = Modifier.fillMaxWidth().padding(32.dp),
                 contentAlignment = Alignment.Center
             ) {
-                CircularProgressIndicator(color = PrimaryGreen)
+                CircularProgressIndicator(color = MaterialTheme.colorScheme.primary)
             }
         } else if (favoriteNames.isEmpty()) {
             Box(
@@ -233,37 +235,63 @@ private fun FavoritesTab(
 }
 
 @Composable
-private fun ProfileTab(innerPadding: PaddingValues) {
+private fun SettingsTab(
+    innerPadding: PaddingValues,
+    isDarkMode: Boolean,
+    onToggleDarkMode: () -> Unit
+) {
     Column(
         modifier = Modifier
             .fillMaxSize()
             .padding(innerPadding)
             .verticalScroll(rememberScrollState()),
-        horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Spacer(modifier = Modifier.height(48.dp))
-        Box(
-            modifier = Modifier.size(80.dp).clip(CircleShape).background(PrimaryContainer),
-            contentAlignment = Alignment.Center
-        ) { Text(text = "🌿", fontSize = 36.sp) }
-
-        Spacer(modifier = Modifier.height(16.dp))
+        Spacer(modifier = Modifier.height(24.dp))
         Text(
-            text = "NaturaMed",
-            style = MaterialTheme.typography.headlineSmall.copy(fontWeight = FontWeight.Bold, color = PrimaryGreen)
+            text = "Ajustes",
+            style = MaterialTheme.typography.headlineMedium.copy(fontWeight = FontWeight.SemiBold),
+            modifier = Modifier.padding(horizontal = 24.dp, vertical = 16.dp)
         )
-        Text(
-            text = "Tu guía de plantas medicinales",
-            style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-            modifier = Modifier.padding(top = 4.dp)
-        )
-        Spacer(modifier = Modifier.height(32.dp))
 
         Card(
             modifier = Modifier.fillMaxWidth().padding(horizontal = 24.dp),
-            shape = RoundedCornerShape(16.dp),
-            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
+            shape = MaterialTheme.shapes.medium,
+            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer)
+        ) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 20.dp, vertical = 16.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        text = "Modo nocturno",
+                        style = MaterialTheme.typography.labelMedium
+                    )
+                    Text(
+                        text = "Activar tema oscuro",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+                Switch(
+                    checked = isDarkMode,
+                    onCheckedChange = { onToggleDarkMode() },
+                    colors = SwitchDefaults.colors(
+                        checkedThumbColor = MaterialTheme.colorScheme.primary,
+                        checkedTrackColor = MaterialTheme.colorScheme.primaryContainer
+                    )
+                )
+            }
+        }
+
+        Spacer(modifier = Modifier.height(24.dp))
+
+        Card(
+            modifier = Modifier.fillMaxWidth().padding(horizontal = 24.dp),
+            shape = MaterialTheme.shapes.medium,
+            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer)
         ) {
             Column(modifier = Modifier.padding(20.dp)) {
                 Text(
@@ -291,30 +319,24 @@ fun AppHeader() {
         verticalAlignment = Alignment.CenterVertically
     ) {
         Box(
-            modifier = Modifier.size(44.dp).clip(CircleShape).background(PrimaryContainer),
+            modifier = Modifier.size(44.dp).clip(CircleShape).background(MaterialTheme.colorScheme.primaryContainer),
             contentAlignment = Alignment.Center
         ) { Text(text = "🌿", fontSize = 20.sp) }
 
         Text(
             text = "NaturaMed",
-            style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold, color = PrimaryGreen),
+            style = MaterialTheme.typography.headlineMedium.copy(fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurface),
             modifier = Modifier.weight(1f).padding(start = 10.dp)
         )
-
-        Box(
-            modifier = Modifier.size(42.dp).clip(CircleShape).background(PrimaryContainer),
-            contentAlignment = Alignment.Center
-        ) {
-            Icon(Icons.Default.Person, contentDescription = "Avatar", tint = PrimaryGreen, modifier = Modifier.size(24.dp))
-        }
     }
 }
+
 
 @Composable
 fun GreetingText() {
     Text(
         text = "¡Hola! ¿Cómo te sientes hoy?",
-        style = MaterialTheme.typography.headlineSmall.copy(fontWeight = FontWeight.SemiBold),
+        style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.SemiBold),
         modifier = Modifier.padding(horizontal = 24.dp, vertical = 8.dp)
     )
 }
@@ -342,12 +364,12 @@ fun SearchField(
             }
         },
         singleLine = true,
-        shape = RoundedCornerShape(28.dp),
+        shape = MaterialTheme.shapes.medium,
         colors = OutlinedTextFieldDefaults.colors(
-            focusedBorderColor = PrimaryGreen,
-            unfocusedBorderColor = Color.Transparent,
-            focusedContainerColor = MaterialTheme.colorScheme.surface,
-            unfocusedContainerColor = MaterialTheme.colorScheme.surface
+            focusedBorderColor = MaterialTheme.colorScheme.primary,
+            unfocusedBorderColor = MaterialTheme.colorScheme.outline,
+            focusedContainerColor = MaterialTheme.colorScheme.background,
+            unfocusedContainerColor = MaterialTheme.colorScheme.background,
         ),
         modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp),
     )
@@ -370,7 +392,7 @@ fun RecentFavoritesSection(
             )
             Text(
                 text = "Ver todos →",
-                style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.SemiBold, color = PrimaryGreen),
+                style = MaterialTheme.typography.labelMedium.copy(color = MaterialTheme.colorScheme.primary),
                 modifier = Modifier.clickable { }
             )
         }
@@ -398,13 +420,13 @@ fun FavoriteCard(
 ) {
     Card(
         modifier = modifier.clickable { onClick() },
-        shape = RoundedCornerShape(16.dp),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-        elevation = CardDefaults.cardElevation(1.dp)
+        shape = MaterialTheme.shapes.medium,
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer),
+        elevation = CardDefaults.cardElevation(0.dp)
     ) {
         Row(modifier = Modifier.padding(12.dp), verticalAlignment = Alignment.CenterVertically) {
             Box(
-                modifier = Modifier.size(44.dp).clip(RoundedCornerShape(12.dp)).background(PrimaryContainer),
+                modifier = Modifier.size(44.dp).clip(RoundedCornerShape(12.dp)).background(MaterialTheme.colorScheme.primaryContainer),
                 contentAlignment = Alignment.Center
             ) { Text("🌿", fontSize = 20.sp) }
             Column(modifier = Modifier.padding(start = 10.dp)) {
@@ -464,14 +486,14 @@ fun HomePlantCard(
 ) {
     Card(
         modifier = modifier.clickable { onClick() },
-        shape = RoundedCornerShape(24.dp),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-        elevation = CardDefaults.cardElevation(3.dp)
+        shape = MaterialTheme.shapes.medium,
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer),
+        elevation = CardDefaults.cardElevation(0.dp)
     ) {
         Column {
             Box(modifier = Modifier.fillMaxWidth().height(128.dp)) {
                 Box(
-                    modifier = Modifier.fillMaxSize().background(PrimaryContainer).clip(RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp)),
+                    modifier = Modifier.fillMaxSize().background(MaterialTheme.colorScheme.primaryContainer).clip(RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp)),
                     contentAlignment = Alignment.Center
                 ) { Text("🌿", fontSize = 40.sp) }
                 if (!plant.imagen_url.isNullOrBlank()) {
@@ -485,7 +507,7 @@ fun HomePlantCard(
                 Card(
                     modifier = Modifier.align(Alignment.TopEnd).padding(8.dp).size(34.dp).clickable { onToggleFavorite() },
                     shape = CircleShape,
-                    colors = CardDefaults.cardColors(containerColor = Color.White.copy(alpha = 0.85f)),
+                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerHigh.copy(alpha = 0.85f)),
                     elevation = CardDefaults.cardElevation(0.dp)
                 ) {
                     Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
@@ -499,11 +521,11 @@ fun HomePlantCard(
                 }
             }
             Column(modifier = Modifier.padding(16.dp)) {
-                Text(plant.nombre_comun, style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.Bold))
+                Text(plant.nombre_comun, style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Bold))
                 plant.descripcion_uso?.let { desc ->
                     Text(
                         text = desc.take(60) + if (desc.length > 60) "..." else "",
-                        style = MaterialTheme.typography.labelSmall,
+                        style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         modifier = Modifier.padding(top = 4.dp),
                         maxLines = 2
@@ -516,11 +538,11 @@ fun HomePlantCard(
 
 @Composable
 fun NaturaMedBottomNav(selectedTab: Int, onTabSelected: (Int) -> Unit) {
-    NavigationBar(containerColor = MaterialTheme.colorScheme.surface, tonalElevation = 8.dp) {
+    NavigationBar(containerColor = MaterialTheme.colorScheme.surfaceContainer, tonalElevation = 0.dp) {
         listOf(
             Triple(Icons.Default.Home,   Icons.Default.Home,              "Inicio"),
             Triple(Icons.Outlined.FavoriteBorder, Icons.Filled.Favorite, "Favoritos"),
-            Triple(Icons.Default.Person, Icons.Default.Person,            "Perfil"),
+            Triple(Icons.Default.Settings, Icons.Default.Settings,            "Ajustes"),
         ).forEachIndexed { index, (outlinedIcon, filledIcon, label) ->
             NavigationBarItem(
                 selected = selectedTab == index,
@@ -528,9 +550,9 @@ fun NaturaMedBottomNav(selectedTab: Int, onTabSelected: (Int) -> Unit) {
                 icon = { Icon(if (selectedTab == index) filledIcon else outlinedIcon, contentDescription = label) },
                 label = { Text(label) },
                 colors = NavigationBarItemDefaults.colors(
-                    selectedIconColor = PrimaryGreen,
-                    selectedTextColor = PrimaryGreen,
-                    indicatorColor = PrimaryContainer
+                    selectedIconColor = MaterialTheme.colorScheme.primary,
+                    selectedTextColor = MaterialTheme.colorScheme.primary,
+                    indicatorColor = MaterialTheme.colorScheme.primaryContainer
                 )
             )
         }

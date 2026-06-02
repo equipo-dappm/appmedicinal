@@ -31,7 +31,10 @@ object Routes {
 }
 
 @Composable
-fun AppNavigation() {
+fun AppNavigation(
+    isDarkMode: Boolean = false,
+    onToggleDarkMode: () -> Unit = {}
+) {
     val navController = rememberNavController()
 
     NavHost(
@@ -45,7 +48,9 @@ fun AppNavigation() {
                 },
                 onPlantClick = { plantName ->
                     navController.navigate(Routes.plantsActivity(plantName))
-                }
+                },
+                isDarkMode = isDarkMode,
+                onToggleDarkMode = onToggleDarkMode
             )
         }
 

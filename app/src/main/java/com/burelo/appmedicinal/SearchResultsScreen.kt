@@ -38,7 +38,7 @@ fun SearchResultsScreen(
     }
 
     Scaffold(
-        containerColor = SurfaceColor,
+        containerColor = MaterialTheme.colorScheme.background,
         topBar = {
             TopAppBar(
                 title = {
@@ -52,11 +52,11 @@ fun SearchResultsScreen(
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                             contentDescription = "Atrás",
-                            tint = PrimaryGreen
+                            tint = MaterialTheme.colorScheme.onSurface
                         )
                     }
                 },
-                colors = TopAppBarDefaults.topAppBarColors(containerColor = SurfaceColor)
+                colors = TopAppBarDefaults.topAppBarColors(containerColor = MaterialTheme.colorScheme.background)
             )
         }
     ) { innerPadding ->
@@ -73,7 +73,7 @@ fun SearchResultsScreen(
                     modifier = Modifier.fillMaxWidth().padding(vertical = 64.dp),
                     contentAlignment = Alignment.Center
                 ) {
-                    CircularProgressIndicator(color = PrimaryGreen)
+                    CircularProgressIndicator(color = MaterialTheme.colorScheme.primary)
                 }
             } else if (viewModel.results.isEmpty()) {
                 Box(
@@ -116,9 +116,9 @@ fun PlantResultCard(
 ) {
     Card(
         onClick = onClick,
-        shape = RoundedCornerShape(16.dp),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-        elevation = CardDefaults.cardElevation(1.dp)
+        shape = MaterialTheme.shapes.medium,
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer),
+        elevation = CardDefaults.cardElevation(0.dp)
     ) {
         Row(
             modifier = Modifier.padding(12.dp),
@@ -129,7 +129,7 @@ fun PlantResultCard(
                 modifier = Modifier.size(64.dp).clip(RoundedCornerShape(12.dp))
             ) {
                 Box(
-                    modifier = Modifier.fillMaxSize().background(PrimaryContainer).clip(RoundedCornerShape(12.dp)),
+                    modifier = Modifier.fillMaxSize().background(MaterialTheme.colorScheme.primaryContainer).clip(RoundedCornerShape(12.dp)),
                     contentAlignment = Alignment.Center
                 ) { Text("🌿", fontSize = 24.sp) }
                 if (!plant.imagen_url.isNullOrBlank()) {
@@ -161,7 +161,7 @@ fun PlantResultCard(
             Icon(
                 imageVector = Icons.Default.Search,
                 contentDescription = null,
-                tint = PrimaryGreen
+                tint = MaterialTheme.colorScheme.onSurfaceVariant
             )
         }
     }

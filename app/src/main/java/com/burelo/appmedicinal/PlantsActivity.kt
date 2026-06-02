@@ -38,7 +38,7 @@ fun PlantsActivityScreen(
     }
 
     Scaffold(
-        containerColor = SurfaceColor,
+        containerColor = MaterialTheme.colorScheme.surface,
         topBar = {
             TopAppBar(
                 title = {
@@ -46,7 +46,7 @@ fun PlantsActivityScreen(
                         text = viewModel.planta?.nombre_comun ?: plantName,
                         style = MaterialTheme.typography.titleLarge.copy(
                             fontWeight = FontWeight.Bold,
-                            color = PrimaryGreen
+                            color = MaterialTheme.colorScheme.primary
                         )
                     )
                 },
@@ -55,11 +55,11 @@ fun PlantsActivityScreen(
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                             contentDescription = "Atrás",
-                            tint = PrimaryGreen
+                            tint = MaterialTheme.colorScheme.primary
                         )
                     }
                 },
-                colors = TopAppBarDefaults.topAppBarColors(containerColor = SurfaceColor)
+                colors = TopAppBarDefaults.topAppBarColors(containerColor = MaterialTheme.colorScheme.surface)
             )
         }
     ) { innerPadding ->
@@ -69,7 +69,7 @@ fun PlantsActivityScreen(
                     modifier = Modifier.fillMaxSize().padding(innerPadding),
                     contentAlignment = Alignment.Center
                 ) {
-                    CircularProgressIndicator(color = PrimaryGreen)
+                    CircularProgressIndicator(color = MaterialTheme.colorScheme.primary)
                 }
             }
             viewModel.error != null -> {
@@ -119,7 +119,7 @@ private fun PlantDetailContent(
             style = MaterialTheme.typography.labelSmall.copy(
                 letterSpacing = 1.5.sp,
                 fontWeight = FontWeight.Bold,
-                color = PrimaryGreen
+                color = MaterialTheme.colorScheme.primary
             )
         )
 
@@ -150,7 +150,7 @@ fun PlantDetailCard(planta: Planta) {
                     )
                 } else {
                     Box(
-                        modifier = Modifier.fillMaxSize().background(PrimaryContainer).clip(RoundedCornerShape(topStart = 20.dp, topEnd = 20.dp)),
+                        modifier = Modifier.fillMaxSize().background(MaterialTheme.colorScheme.primaryContainer).clip(RoundedCornerShape(topStart = 20.dp, topEnd = 20.dp)),
                         contentAlignment = Alignment.Center
                     ) { Text("🌿", fontSize = 60.sp) }
                 }
@@ -197,15 +197,15 @@ fun PlantDetailCard(planta: Planta) {
                 }
 
                 planta.origen?.let { origen ->
-                    InfoBlock(label = "ORIGEN", content = origen, labelColor = PrimaryGreen)
+                    InfoBlock(label = "ORIGEN", content = origen, labelColor = MaterialTheme.colorScheme.primary)
                 }
 
                 planta.manejo?.let { manejo ->
-                    InfoBlock(label = "MANEJO", content = manejo, labelColor = PrimaryGreen)
+                    InfoBlock(label = "MANEJO", content = manejo, labelColor = MaterialTheme.colorScheme.primary)
                 }
 
                 planta.forma_de_vida?.let { forma ->
-                    InfoBlock(label = "FORMA DE VIDA", content = forma, labelColor = PrimaryGreen)
+                    InfoBlock(label = "FORMA DE VIDA", content = forma, labelColor = MaterialTheme.colorScheme.primary)
                 }
             }
         }

@@ -20,10 +20,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
 
-// ─────────────────────────────────────────────────────────────
-//  SCREEN
-// ─────────────────────────────────────────────────────────────
-
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun VideoActivityScreen(
@@ -31,7 +27,7 @@ fun VideoActivityScreen(
     onBack: () -> Unit = {}
 ) {
     Scaffold(
-        containerColor = SurfaceColor,
+        containerColor = MaterialTheme.colorScheme.background,
         topBar = {
             TopAppBar(
                 title = {
@@ -39,7 +35,7 @@ fun VideoActivityScreen(
                         text = "Video Demostrativo",
                         style = MaterialTheme.typography.titleLarge.copy(
                             fontWeight = FontWeight.Bold,
-                            color = PrimaryGreen
+                            color = MaterialTheme.colorScheme.onSurface
                         )
                     )
                 },
@@ -48,11 +44,11 @@ fun VideoActivityScreen(
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                             contentDescription = "Regresar",
-                            tint = PrimaryGreen
+                            tint = MaterialTheme.colorScheme.onSurface
                         )
                     }
                 },
-                colors = TopAppBarDefaults.topAppBarColors(containerColor = SurfaceColor)
+                colors = TopAppBarDefaults.topAppBarColors(containerColor = MaterialTheme.colorScheme.background)
             )
         }
     ) { innerPadding ->
@@ -63,29 +59,24 @@ fun VideoActivityScreen(
                 .padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            // Chip informativo
             Text(
                 text = "RECURSO EDUCATIVO",
-                style = MaterialTheme.typography.labelSmall.copy(
-                    letterSpacing = 1.5.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = PrimaryGreen
+                style = MaterialTheme.typography.labelMedium.copy(
+                    color = MaterialTheme.colorScheme.primary
                 )
             )
 
-            // Player card
             Card(
                 modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(20.dp),
-                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-                elevation = CardDefaults.cardElevation(3.dp)
+                shape = MaterialTheme.shapes.medium,
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer),
+                elevation = CardDefaults.cardElevation(0.dp)
             ) {
                 Column {
-                    // Header del card igual que en PlantsActivity
                     Box(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .background(PrimaryContainer)
+                            .background(MaterialTheme.colorScheme.primaryContainer)
                             .padding(horizontal = 20.dp, vertical = 14.dp),
                         contentAlignment = Alignment.CenterStart
                     ) {
@@ -99,20 +90,19 @@ fun VideoActivityScreen(
                                     text = "Reproducción de Video",
                                     style = MaterialTheme.typography.titleMedium.copy(
                                         fontWeight = FontWeight.Bold,
-                                        color = PrimaryGreen
+                                        color = MaterialTheme.colorScheme.onPrimaryContainer
                                     )
                                 )
                                 Text(
                                     text = "Material demostrativo de preparación",
                                     style = MaterialTheme.typography.bodySmall.copy(
-                                        color = PrimaryGreen.copy(alpha = 0.7f)
+                                        color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.7f)
                                     )
                                 )
                             }
                         }
                     }
 
-                    // WebView YouTube embed
                     Box(
                         modifier = Modifier
                             .fillMaxWidth()
@@ -144,7 +134,6 @@ fun VideoActivityScreen(
                         )
                     }
 
-                    // Nota informativa dentro del card
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
@@ -162,12 +151,11 @@ fun VideoActivityScreen(
                 }
             }
 
-            // Botón regresar con mismo estilo que el botón de video en PlantsActivity
             Button(
                 onClick = onBack,
                 modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(12.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = PrimaryGreen)
+                shape = MaterialTheme.shapes.extraLarge,
+                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
             ) {
                 Icon(
                     imageVector = Icons.AutoMirrored.Filled.ArrowBack,
@@ -177,16 +165,15 @@ fun VideoActivityScreen(
                 Spacer(modifier = Modifier.width(8.dp))
                 Text(
                     text = "Regresar a la lista de plantas",
-                    style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.SemiBold)
+                    style = MaterialTheme.typography.labelMedium
                 )
             }
 
-            // Aviso legal / educativo
             Card(
                 modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(16.dp),
+                shape = MaterialTheme.shapes.small,
                 colors = CardDefaults.cardColors(
-                    containerColor = PrimaryGreen.copy(alpha = 0.07f)
+                    containerColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.15f)
                 ),
                 elevation = CardDefaults.cardElevation(0.dp)
             ) {
@@ -199,7 +186,7 @@ fun VideoActivityScreen(
                     Text(
                         text = "El contenido audiovisual es únicamente con fines educativos. Consulta siempre a un profesional de la salud antes de usar plantas medicinales.",
                         style = MaterialTheme.typography.bodySmall,
-                        color = PrimaryGreen.copy(alpha = 0.85f)
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
             }
